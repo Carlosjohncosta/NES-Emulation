@@ -1,5 +1,6 @@
 package processor;
 
+//TEST
 public class Processor extends Memory {
 	int cycle = 0x00;
 	int currCycle = 0x00;
