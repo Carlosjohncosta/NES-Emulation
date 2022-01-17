@@ -178,7 +178,7 @@ abstract class OpCodeMapping {
 		
 		opMap[0xEA] = OpCodes.NOP;
 		
-		for (short i = 0x0; i < 0x100; i+=0x10) {
+		/*for (short i = 0x0; i < 0x100; i+=0x10) {
 			for (short y = 0x0; y < 0x10; y++) {
 				if (opMap[i + y] != null) {
 					System.out.print(Integer.toString(i + y, 16) + ": " + opMap[i + y] + "   ");
@@ -188,7 +188,7 @@ abstract class OpCodeMapping {
 
 			}
 			System.out.print("\n");
-		}
+		}*/
 		
 	}
 	

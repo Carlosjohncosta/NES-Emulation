@@ -14,6 +14,12 @@ public class Memory extends OpCodeMapping {
 	Memory() {
 		//Starting instruction address
 		PC = 0x0000;
+		SP = 0x01ff;
+		X = 0x00;
+		short[] tempIns = {0xe8, 0x4c};
+		for (int i = 0; i < tempIns.length; i++) {
+			memory[i] = tempIns[i];
+		}
 	}
 	
 	short getByte(int address) {
@@ -26,7 +32,7 @@ public class Memory extends OpCodeMapping {
 	
 	int getTwoByte(int address) {
 		address = getMirror(address);
-		return memory[(address + 1) << 8] + memory[address];
+		return (memory[address + 1] << 8) + memory[address];
 	}
 	
 	private int getMirror(int address) {
@@ -82,6 +88,6 @@ public class Memory extends OpCodeMapping {
 	
 	int getPC() { return PC; }
 	
-	void setPC(short value) { PC = value; }
+	void setPC(int value) { PC = value; }
 	
 }
