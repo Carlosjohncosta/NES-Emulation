@@ -13,10 +13,23 @@ public class Memory extends OpCodeMapping {
 	
 	Memory() {
 		//Starting instruction address
+		X = 0000;
 		PC = 0x0000;
 		SP = 0x01ff;
-		X = 0x00;
-		short[] tempIns = {0xe8, 0x4c};
+		short[] tempIns = {0xe8, 0xe8, 0x8e, 0x00, 0x02, 0xee, 0x00, 0x02, 0xad, 0x00, 0x02, 0x30, 0x05, 0x4c, 0x00, 0x00, 0xa9, 0x00, 0xaa, 0x4c, 0x00, 0x00};
+		/*
+		INX
+		INX
+		STX $0200
+		INC $0200
+		LDA $0200
+		BMI $05 (label 1)
+		JMP $00
+		(label 1):
+			LDA #$00
+			TAX
+			JMP $00
+		 */
 		for (int i = 0; i < tempIns.length; i++) {
 			memory[i] = tempIns[i];
 		}

@@ -4,8 +4,8 @@ import processor.Processor;
 
 public class Main extends PApplet{
 	Processor i; 
-	public static int length = 32;
-	public static int size = 10;
+	public static int length = 8;
+	public static int size = 60;
 	public static void main(String[] args) {
 		PApplet.main("io.Main");
 	}
@@ -15,10 +15,12 @@ public class Main extends PApplet{
 	}
 	
 	public void setup() {
+		frameRate(1000000);
 		i = new Processor(this);
 	}
 	
 	public void draw() {
 		i.exec();
+		i.display();
 	}
 }

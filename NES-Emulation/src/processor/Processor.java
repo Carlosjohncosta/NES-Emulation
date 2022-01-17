@@ -7,48 +7,32 @@ public class Processor extends Memory {
 	int currCycle = 0x00;
 	AddressModes currMode;
 	OpCodes currOp;
-	byte instructionLen;
+	short instructionLen;
 	boolean running = true;
 	PApplet main;
 	
 	//Takes instruction, resolves start and destination, sends and recieves result from opperations, and sends to destination 
 	public Processor(PApplet main) {
 		this.main = main;
+		exec();
 	}
 	
 	public void exec() {
 		currOp = opMap[getByte(getPC())];
 		currMode = modeMap[getByte(getPC())];
 		executeInstruction();
-		//System.out.println(getReg(Registers.X));
 		setPC(getPC() + instructionLen);
-		display();
 	}
 	
-	private void display() {
-		main.fill(0);
+	public void display() {
+		main.background(0);
 		for (int y = 0; y < Main.length; y++) {
 			for (int x = 0; x < Main.length; x++) {
-				main.fill(getByte((y * 16) + x));
+				if (getByte(0x0200 + (y * 16) + x) == 0) continue;
+				main.fill((getByte(0x0200 + (y * 16) + x) - 1));
 				main.square(x * Main.size, y * Main.size, Main.size);
 			}
 		}
-	}
-	
-	void nextOp() {
-		currMode = modeMap[getByte(getPC())];
-		currOp = opMap[getByte(getPC())];
-		try {
-			executeInstruction();
-		} catch (Exception e) {
-			System.out.print("\n\nBad OPcode: 0x" + Integer.toHexString(getByte(getPC())) + "\n");
-			throw e;
-		}
-		System.out.print("\nProgram Counter: 0x" + Integer.toHexString(getPC()) + "\n");
-		System.out.print("Instruction at PC address: 0x" + Integer.toHexString((getByte(getPC()) << 8) + getByte(getPC() + 1)) + "\n");
-		System.out.print("Opcode: " + opMap[getByte(getPC())] + "\n");
-		System.out.print("Address Mode: " + modeMap[getByte(getPC())] + "\n");
-		System.out.print("Register SR after execution: " + Integer.toString(getReg(Registers.SR), 2) + "\n");
 	}
 	
 	void executeInstruction() {
@@ -134,7 +118,7 @@ public class Processor extends Memory {
 			instructionLen = 2;
 			return new int[] {getByte(getPC() + 1), getByte(getByte(getPC() + 1))};
 		case R:
-			instructionLen = 3;
+			instructionLen = 2;
 			return new int[] {getPC() + getByte(getPC() + 1), getByte(getPC() + getByte(getPC() + 1))};
 		case AI:
 			instructionLen = 3;
@@ -162,26 +146,33 @@ public class Processor extends Memory {
 	}
 	
 	//Sets flags for zero and negative values
-	private void setZNFlags(byte regVal) {
+	private void setZNFlags(short regVal) {
 		//Zero.
-		if (regVal == 0) setReg(Registers.SR, (short)(getReg(Registers.SR) | 0b10));
-		//Negative.
-		if ((regVal >>> 7) == 1) setReg(Registers.SR, (short)(getReg(Registers.SR) | (1 << 7)));
+		if (regVal == 0) {
+			setReg(Registers.SR, (short)(getReg(Registers.SR) | 0b10));
+			
+		} else if (Integer.signum((byte)regVal) == -1) {
+			setReg(Registers.SR, (short)(getReg(Registers.SR) | 0x80));
+			
+		} else {
+			setReg(Registers.SR, (short)(getReg(Registers.SR) & ~0x80));
+			
+		}
 	}
 	
 	private void loadAndStore(int[] address) {
 		switch(currOp) {
 		case LDA:
-			setReg(Registers.A, (byte)address[1]);
-			setZNFlags((byte)getReg(Registers.A));
+			setReg(Registers.A, (short)address[1]);
+			setZNFlags(getReg(Registers.A));
 			break;
 		case LDX:
-			setReg(Registers.X, (byte)address[1]);
-			setZNFlags((byte)getReg(Registers.X));
+			setReg(Registers.X, (short)address[1]);
+			setZNFlags(getReg(Registers.X));
 			break;
 		case LDY:
-			setReg(Registers.Y, (byte)address[1]);
-			setZNFlags((byte)getReg(Registers.Y));
+			setReg(Registers.Y, (short)address[1]);
+			setZNFlags(getReg(Registers.Y));
 			break;
 		case STA:
 			setByte(address[0], getReg(Registers.A));
@@ -220,35 +211,32 @@ public class Processor extends Memory {
 	}
 	
 	private void incAndDec(int[] address) {
-		instructionLen = 1;
 		switch(currOp) {
 		case INC:
-			instructionLen = 2;
-			setByte(address[0], (short)(address[1] + 1));
+			setByte(address[0], (byte)(address[1] + 1));
 			setZNFlags((byte)address[1]);
 			break;
 		case DEC:
-			instructionLen = 2;
-			setByte(address[0], (short)(address[1] - 1));
+			setByte(address[0], (byte)(address[1] - 1));
 			setZNFlags((byte)address[1]);
 			break;
 		case INX:
-			setReg(Registers.X, (short)(getReg(Registers.X) + 1));
+			setReg(Registers.X, (byte)(getReg(Registers.X) + 1));
 			setZNFlags((byte)getReg(Registers.X));
 			break;
 		case DEX:
-			setReg(Registers.X, (short)(getReg(Registers.X) - 1));
+			setReg(Registers.X, (byte)(getReg(Registers.X) - 1));
 			setZNFlags((byte)getReg(Registers.X));
 			break;
 		case INY:
-			setReg(Registers.Y, (short)(getReg(Registers.Y) + 1));
+			setReg(Registers.Y, (byte)(getReg(Registers.Y) + 1));
 			setZNFlags((byte)getReg(Registers.Y));
 			break;
 		case DEY:
-			setReg(Registers.Y, (short)(getReg(Registers.Y) - 1));
+			setReg(Registers.Y, (byte)(getReg(Registers.Y) - 1));
 			setZNFlags((byte)getReg(Registers.Y));
 			break;
-		default: return;
+		default: break;
 		}
 	}
 	
@@ -334,31 +322,30 @@ public class Processor extends Memory {
 	}
 	
 	private void branch(int[] value) {
-		instructionLen = 2;
 		switch (currOp) {
 		case BCC:
-			if ((getReg(Registers.SR) & 1) == 0) setPC(value[0]);
+			if ((getReg(Registers.SR) & 1) == 0) instructionLen = getByte(getPC() + 1);
 			break;
 		case BCS:
-			if ((getReg(Registers.SR) & 1) == 1) setPC(value[0]);
+			if ((getReg(Registers.SR) & 1) == 1) instructionLen = getByte(getPC() + 1);
 			break;
 		case BNE:
-			if (((getReg(Registers.SR) >>> 1) & 1) == 0) setPC(value[0]);
+			if (((getReg(Registers.SR) >>> 1) & 1) == 0) instructionLen = getByte(getPC() + 1);
 			break;
 		case BEQ:
-			if (((getReg(Registers.SR) >>> 1) & 1) == 1) setPC(value[0]);
+			if (((getReg(Registers.SR) >>> 1) & 1) == 1) instructionLen = getByte(getPC() + 1);
 			break;
 		case BPL:
-			if (((getReg(Registers.SR) >>> 7) & 1) == 0) setPC(value[0]);
+			if (((getReg(Registers.SR) >>> 7) & 1) == 0) instructionLen = getByte(getPC() + 1);
 			break;
 		case BMI:
-			if (((getReg(Registers.SR) >>> 7) & 1) == 1) setPC(value[0]);
+			if (((getReg(Registers.SR) & 0x80) >>> 7) == 1) instructionLen = getByte(getPC() + 1);
 			break;
 		case BVC:
-			if (((getReg(Registers.SR) >>> 6) & 1) == 0) setPC(value[0]);
+			if (((getReg(Registers.SR) >>> 6) & 1) == 0) instructionLen = getByte(getPC() + 1);
 			break;
 		case BVS:
-			if (((getReg(Registers.SR) >>> 6) & 1) == 1) setPC(value[0]);
+			if (((getReg(Registers.SR) >>> 6) & 1) == 1) instructionLen = getByte(getPC() + 1);
 			break;
 		default: return;
 		}

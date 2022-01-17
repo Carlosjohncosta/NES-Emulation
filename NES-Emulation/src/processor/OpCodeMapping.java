@@ -198,8 +198,9 @@ abstract class OpCodeMapping {
 		//LOW NIBBLE 0x0
 		modeMap[0x00] = AddressModes.I;
 		modeMap[0x10] = AddressModes.R;
-		for (int i = 0x20; i <= 0x70; i+=0x10) {
-			if (i % 2 == 0) {
+		modeMap[0x20] = AddressModes.A;
+		for (int i = 0x30; i <= 0x70; i+=0x10) {
+			if (i % 2 != 0) {
 				modeMap[i] = AddressModes.I;
 			} else {
 				modeMap[i] = AddressModes.R;
